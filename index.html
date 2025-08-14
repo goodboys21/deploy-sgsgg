@@ -1,0 +1,416 @@
+<html lang="en">
+ <head>
+  <meta charset="utf-8"/>
+  <meta content="width=device-width, initial-scale=1" name="viewport"/>
+  <title>
+   Cogood
+  </title>
+  <script src="https://cdn.tailwindcss.com">
+  </script>
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" rel="stylesheet"/>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&amp;display=swap" rel="stylesheet"/>
+  <style>
+   body { font-family: 'Inter', sans-serif; }
+   /* Animations for popup */
+   @keyframes fadeInScale {
+     0% {
+       opacity: 0;
+       transform: scale(0.8);
+     }
+     100% {
+       opacity: 1;
+       transform: scale(1);
+     }
+   }
+   @keyframes fadeOutScale {
+     0% {
+       opacity: 1;
+       transform: scale(1);
+     }
+     100% {
+       opacity: 0;
+       transform: scale(0.8);
+     }
+   }
+   .animate-fade-in-scale {
+     animation: fadeInScale 0.3s ease forwards;
+   }
+   .animate-fade-out-scale {
+     animation: fadeOutScale 0.3s ease forwards;
+   }
+   /* Prevent scrolling on body when popup is open */
+   body.popup-open {
+     overflow: hidden;
+     height: 100vh;
+   }
+  </style>
+ </head>
+<body class="bg-gradient-to-b from-indigo-50 to-white min-h-screen flex flex-col">
+  <!-- Header -->
+  <header class="bg-white shadow-md sticky top-0 z-30">
+    <div class="max-w-6xl mx-auto px-6 py-5 flex items-center justify-between">
+      <a class="flex items-center space-x-4" href="#">
+        <img alt="Logo" class="w-14 h-14 rounded-md" src="https://files.catbox.moe/h6g3ve.png"/>
+        <h1 class="text-2xl font-extrabold text-indigo-600 tracking-wide">
+          Cogood
+        </h1>
+      </a>
+    <nav class="hidden md:flex space-x-8 text-gray-600 font-medium">
+     <a class="hover:text-indigo-600 transition duration-300" href="#">
+      Home
+     </a>
+     <a class="hover:text-indigo-600 transition duration-300" href="#">
+      About
+     </a>
+     <a class="hover:text-indigo-600 transition duration-300" href="#">
+      Contact
+     </a>
+    </nav>
+    <div aria-label="Battery status" class="md:hidden flex items-center space-x-2 text-indigo-600 font-semibold" id="batteryStatus">
+     <i aria-hidden="true" class="fas fa-battery-full fa-lg" id="batteryIcon">
+     </i>
+     <span class="text-base select-none" id="batteryLevelText">
+      --%
+     </span>
+    </div>
+   </div>
+  </header>
+  <!-- Main -->
+  <main class="flex-grow max-w-4xl mx-auto px-6 py-12 w-full relative">
+   <section class="bg-white rounded-2xl shadow-lg p-10 md:p-14 max-w-3xl mx-auto">
+    <div class="mb-10">
+     <h2 class="text-3xl font-extrabold text-gray-900 mb-4 text-center">
+      Cogood
+     </h2>
+     <p class="text-gray-600 max-w-xl mx-auto text-center">
+      Activate Your Website Now In Seconds!
+     </p>
+    </div>
+    <form class="space-y-8" enctype="multipart/form-data" id="deployForm" novalidate="">
+     <div>
+      <label class="block text-gray-700 font-semibold mb-3" for="domain">
+       Project Name
+      </label>
+      <input class="w-full border border-gray-300 rounded-lg px-5 py-3 text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition" id="domain" name="domain" placeholder="project name" required="" type="text"/>
+      <p class="text-sm text-red-600 mt-2 hidden" id="domainError">
+       Project Name Hang Di Gunakan Untuk Subdomain hanya boleh huruf kecil, angka, strip (-), min 3 karakter.
+      </p>
+     </div>
+     <div>
+  <label class="block text-gray-700 font-semibold mb-3" for="file">
+    Upload Script
+  </label>
+  
+  <!-- Label tombol -->
+  <label for="file" class="inline-block border border-gray-300 rounded-lg px-4 py-2 bg-indigo-50 text-indigo-600 font-semibold cursor-pointer hover:bg-indigo-100 transition">
+    Choose File
+  </label>
+  
+  <!-- Input file disembunyikan -->
+  <input type="file" id="file" name="file" accept=".html,.zip" class="hidden" required>
+  
+  <!-- Teks nama file -->
+  <span id="fileName" class="ml-2 text-gray-500">No file</span>
+  
+  <p class="text-sm text-red-600 mt-2 hidden" id="fileError">
+    Files must be in HTML or ZIP format.
+  </p>
+</div>
+     <button class="w-full md:w-auto inline-flex items-center justify-center bg-indigo-600 text-white font-semibold px-8 py-4 rounded-lg hover:bg-indigo-700 focus:outline-none focus:ring-4 focus:ring-indigo-500 focus:ring-offset-2 transition" id="submitBtn" type="submit">
+      <i class="fas fa-cloud-upload-alt mr-3 text-lg">
+      </i>
+      Deploy
+     </button>
+     <!-- Loading Spinner -->
+     <div class="hidden text-center mt-4" id="loadingSpinner">
+      <svg class="animate-spin h-8 w-8 text-indigo-600 mx-auto" fill="none" viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+       <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4">
+       </circle>
+       <path class="opacity-75" d="M4 12a8 8 0 018-8v8H4z" fill="currentColor">
+       </path>
+      </svg>
+      <p class="text-indigo-600 mt-2 font-medium">
+       Please wait...
+      </p>
+     </div>
+    </form>
+   </section>
+   <section class="mt-16 max-w-3xl mx-auto px-6">
+    <h3 class="text-2xl font-extrabold text-gray-900 mb-6 text-center">
+     How It Works
+    </h3>
+    <div class="space-y-8 md:space-y-0 md:grid md:grid-cols-3 md:gap-10 text-center">
+     <div class="bg-white rounded-xl shadow-md p-8 hover:shadow-lg transition">
+      <h4 class="text-lg font-semibold mb-2 text-indigo-600">
+       Enter Project Name
+      </h4>
+      <p class="text-gray-600">
+       Enter your project name. This name will be used as the URL.
+      </p>
+     </div>
+     <div class="bg-white rounded-xl shadow-md p-8 hover:shadow-lg transition">
+      <h4 class="text-lg font-semibold mb-2 text-indigo-600">
+       Upload Your Script
+      </h4>
+      <p class="text-gray-600">
+       Upload your website files in HTML or ZIP format safely.
+      </p>
+     </div>
+     <div class="bg-white rounded-xl shadow-md p-8 hover:shadow-lg transition">
+      <h4 class="text-lg font-semibold mb-2 text-indigo-600">
+       Go Live Instantly
+      </h4>
+      <p class="text-gray-600">
+       Your website is immediately active and can be accessed via a subdomain of the project name you chose.
+      </p>
+     </div>
+    </div>
+   </section>
+  </main>
+  <!-- Footer -->
+  <footer class="bg-white border-t border-indigo-100 mt-20">
+   <div class="max-w-6xl mx-auto px-6 py-8 flex flex-col md:flex-row items-center justify-between text-gray-500 text-sm">
+    <p>
+     © 2025 Cogood. All rights reserved.
+    </p>
+    <div class="flex space-x-6 mt-4 md:mt-0">
+     <a aria-label="Facebook" class="hover:text-indigo-600 transition" href="#">
+      <i class="fab fa-facebook-f">
+      </i>
+     </a>
+     <a aria-label="Twitter" class="hover:text-indigo-600 transition" href="#">
+      <i class="fab fa-twitter">
+      </i>
+     </a>
+     <a aria-label="LinkedIn" class="hover:text-indigo-600 transition" href="#">
+      <i class="fab fa-linkedin-in">
+      </i>
+     </a>
+     <a aria-label="GitHub" class="hover:text-indigo-600 transition" href="#">
+      <i class="fab fa-github">
+      </i>
+     </a>
+    </div>
+   </div>
+  </footer>
+  <!-- Popup Modal -->
+  <div aria-describedby="popupDesc" aria-labelledby="popupTitle" aria-modal="true" class="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center p-4 z-50 hidden" id="popupModal" role="dialog">
+   <div class="bg-white rounded-2xl shadow-2xl max-w-full w-full max-w-md p-6 relative flex flex-col space-y-6 animate-fade-in-scale overflow-auto" id="popupContentWrapper" style="max-height: 90vh;">
+    <button aria-label="Close popup" class="absolute top-4 right-4 text-gray-400 hover:text-gray-700 focus:outline-none" id="closePopup" type="button">
+     <i class="fas fa-times fa-lg">
+     </i>
+    </button>
+    <div class="flex flex-col items-center space-y-6 text-center font-semibold text-lg text-gray-900" id="popupContent" style="word-break: break-word;">
+    </div>
+   </div>
+  </div>
+  <script>
+   const form = document.getElementById('deployForm');
+const domainInput = document.getElementById('domain');
+const fileInput = document.getElementById('file');
+const domainError = document.getElementById('domainError');
+const fileError = document.getElementById('fileError');
+const loadingSpinner = document.getElementById('loadingSpinner');
+const submitBtn = document.getElementById('submitBtn');
+
+const popupModal = document.getElementById('popupModal');
+const popupContent = document.getElementById('popupContent');
+const popupContentWrapper = document.getElementById('popupContentWrapper');
+const closePopup = document.getElementById('closePopup');
+
+const batteryIcon = document.getElementById('batteryIcon');
+const batteryLevelText = document.getElementById('batteryLevelText');
+const fileInputCustom = document.getElementById('file');
+const fileNameText = document.getElementById('fileName');
+
+fileInputCustom.addEventListener('change', function() {
+  fileNameText.textContent = this.files.length ? this.files[0].name : 'No file';
+});
+
+function updateBatteryIcon(level, charging) {
+  // level is between 0 and 1
+  const percentage = Math.round(level * 100);
+  batteryLevelText.textContent = `${percentage}%`;
+
+  // Remove all fa-battery-* classes
+  batteryIcon.classList.remove(
+    'fa-battery-empty',
+    'fa-battery-quarter',
+    'fa-battery-half',
+    'fa-battery-three-quarters',
+    'fa-battery-full',
+    'text-red-600',
+    'text-yellow-500',
+    'text-green-600',
+    'text-indigo-600'
+  );
+
+  if (charging) {
+    // Show bolt icon overlay or change color to indicate charging
+    batteryIcon.classList.add('fa-bolt');
+    batteryIcon.classList.remove('fa-battery-full');
+    batteryIcon.classList.add('text-indigo-600');
+  } else {
+    batteryIcon.classList.remove('fa-bolt');
+    if (percentage <= 10) {
+      batteryIcon.classList.add('fa-battery-empty', 'text-red-600');
+    } else if (percentage <= 35) {
+      batteryIcon.classList.add('fa-battery-quarter', 'text-red-600');
+    } else if (percentage <= 60) {
+      batteryIcon.classList.add('fa-battery-half', 'text-yellow-500');
+    } else if (percentage <= 85) {
+      batteryIcon.classList.add('fa-battery-three-quarters', 'text-green-600');
+    } else {
+      batteryIcon.classList.add('fa-battery-full', 'text-green-600');
+    }
+  }
+}
+
+if ('getBattery' in navigator) {
+  navigator.getBattery().then(battery => {
+    function updateAllBatteryInfo() {
+      updateBatteryIcon(battery.level, battery.charging);
+    }
+    updateAllBatteryInfo();
+
+    battery.addEventListener('levelchange', () => {
+      updateBatteryIcon(battery.level, battery.charging);
+    });
+    battery.addEventListener('chargingchange', () => {
+      updateBatteryIcon(battery.level, battery.charging);
+    });
+  }).catch(() => {
+    // If battery API fails, show unknown
+    batteryLevelText.textContent = '--%';
+    batteryIcon.className = 'fas fa-battery-half text-gray-400';
+  });
+} else {
+  // Battery API not supported
+  batteryLevelText.textContent = '--%';
+  batteryIcon.className = 'fas fa-battery-half text-gray-400';
+}
+
+function closePopupWithAnimation() {
+  popupContentWrapper.classList.remove('animate-fade-in-scale');
+  popupContentWrapper.classList.add('animate-fade-out-scale');
+  // Wait for animation to finish before hiding
+  popupContentWrapper.addEventListener('animationend', () => {
+    popupModal.classList.add('hidden');
+    popupContentWrapper.classList.remove('animate-fade-out-scale');
+    popupContentWrapper.classList.add('animate-fade-in-scale');
+    document.body.classList.remove('popup-open');
+  }, { once: true });
+}
+
+closePopup.addEventListener('click', () => {
+  closePopupWithAnimation();
+  document.body.classList.remove('popup-open');
+});
+
+popupModal.addEventListener('click', (e) => {
+  if (e.target === popupModal) {
+    closePopupWithAnimation();
+    document.body.classList.remove('popup-open');
+  }
+});
+
+function validateDomain(domain) {
+  const domainRegex = /^[a-z0-9-]{3,64}$/;
+  return domainRegex.test(domain);
+}
+
+function validateFile(file) {
+  if (!file) return false;
+  const allowedExtensions = ['.html', '.zip'];
+  return allowedExtensions.some(ext => file.name.toLowerCase().endsWith(ext));
+}
+
+form.addEventListener('submit', async (e) => {
+  e.preventDefault();
+
+  domainError.classList.add('hidden');
+  fileError.classList.add('hidden');
+  popupContent.innerHTML = '';
+  popupModal.classList.add('hidden');
+  popupContent.className = "flex flex-col items-center space-y-6 text-center font-semibold text-lg text-gray-900";
+
+  const domain = domainInput.value.trim().toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '');
+  const file = fileInput.files[0];
+  let valid = true;
+
+  if (!validateDomain(domain)) {
+    domainError.classList.remove('hidden');
+    valid = false;
+  }
+
+  if (!validateFile(file)) {
+    fileError.classList.remove('hidden');
+    valid = false;
+  }
+
+  if (!valid) return;
+
+  const formData = new FormData();
+  formData.append('subdomain', domain);
+  formData.append('file', file, file.name.endsWith('.zip') ? 'project.zip' : 'index.html');
+
+  try {
+    loadingSpinner.classList.remove('hidden');
+    submitBtn.disabled = true;
+
+    const response = await fetch('https://apii.baguss.web.id/deploy', {
+      method: 'POST',
+      body: formData
+    });
+
+    const json = await response.json();
+
+    if (!json.success) {
+      throw new Error(json.message || 'Gagal deploy.');
+    }
+
+    // Build popup content with icons, wrapped URL, and QR code
+    const deployedUrl = `${json.fullDomain}`;
+    const qrApiUrl = `https://apii.baguss.web.id/tools/toqr?apikey=bagus&text=${encodeURIComponent(deployedUrl)}`;
+
+    // Clear any previous classes and set new styling for success with white background and dark text
+    popupContent.className = "flex flex-col items-center space-y-6 text-center font-semibold text-lg text-gray-900";
+
+    popupContent.innerHTML = `
+      <div class="flex items-center justify-center space-x-3">
+        <i class="fas fa-check-circle text-4xl text-green-600"></i>
+        <h3 id="popupTitle" class="text-2xl font-extrabold break-words max-w-full">Situs Berhasil Dideploy!</h3>
+      </div>
+      <div class="flex flex-col items-center space-y-4 mt-4 w-full">
+        <img src="${qrApiUrl}" alt="QR code representing the URL ${deployedUrl} for quick access" class="w-40 h-40 rounded-lg shadow-lg border-4 border-gray-200 mx-auto"/>
+        <a href="${deployedUrl}" target="_blank" rel="noopener noreferrer" class="underline hover:text-indigo-600 break-words text-lg font-semibold max-w-full" id="popupDesc">${json.fullDomain}</a>
+      </div>
+      <div class="flex items-center space-x-3 mt-6 text-gray-600 max-w-xs mx-auto">
+        <i class="fas fa-clock text-xl flex-shrink-0"></i>
+        <p class="text-base">Website aktif dalam 1–5 menit.</p>
+      </div>
+    `;
+    popupModal.classList.remove('hidden');
+    document.body.classList.add('popup-open');
+  } catch (error) {
+    // Clear any previous classes and set new styling for error with white background and red text
+    popupContent.className = "flex flex-col items-center space-y-6 text-center font-semibold text-lg text-red-700";
+
+    popupContent.innerHTML = `
+      <div class="flex items-center justify-center space-x-3">
+        <i class="fas fa-exclamation-triangle text-3xl"></i>
+        <p class="text-xl font-semibold break-words max-w-full">Terjadi kesalahan:</p>
+      </div>
+      <p class="mt-4 text-base break-words max-w-full">${error.message}</p>
+    `;
+    popupModal.classList.remove('hidden');
+    document.body.classList.add('popup-open');
+  } finally {
+    loadingSpinner.classList.add('hidden');
+    submitBtn.disabled = false;
+    form.reset();
+  }
+});
+  </script>
+ </body>
+</html>
